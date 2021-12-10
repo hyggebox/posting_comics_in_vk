@@ -10,9 +10,9 @@ from random import randint
 
 def get_random_comic_num():
     latest_comic_url = "https://xkcd.com/info.0.json"
-    r = requests.get(latest_comic_url)
-    r.raise_for_status()
-    latest_comic_num = r.json()["num"]
+    response = requests.get(latest_comic_url)
+    response.raise_for_status()
+    latest_comic_num = response.json()["num"]
     random_comic_num = randint(1, latest_comic_num)
 
     return random_comic_num
