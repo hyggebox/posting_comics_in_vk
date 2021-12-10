@@ -18,6 +18,13 @@ def get_random_comic_num():
     return random_comic_num
 
 
+def download_file(dir_name, img_name, url):
+    response = requests.get(url)
+    response.raise_for_status()
+    with open(os.path.join(dir_name, img_name), "wb") as file:
+        file.write(response.content)
+
+
 def download_comic(dir_name, img_name, num):
     comic_download_url = "https://xkcd.com/{}/info.0.json".format(num)
 
@@ -28,12 +35,7 @@ def download_comic(dir_name, img_name, num):
     comic_alt = comic_response["alt"]
     comic_title = comic_response["title"]
 
-    response = requests.get(img_url)
-    response.raise_for_status()
-
-    with open(os.path.join(dir_name, img_name), "wb") as file:
-        file.write(response.content)
-
+    download_file(dir_name, img_name, img_url)
     return f"{comic_title}\n\n{comic_alt}"
 
 
