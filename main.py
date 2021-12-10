@@ -88,8 +88,6 @@ def post_img(basic_params, endpoint, owner_id, media_id, msg, group_id):
     response = requests.post(endpoint.format("wall.post"), data=params)
     response.raise_for_status()
 
-    shutil.rmtree('images', ignore_errors=False, onerror=None)
-
 
 
 if __name__ == "__main__":
@@ -113,3 +111,4 @@ if __name__ == "__main__":
     upload_img_response = upload_img(upload_url, dir_name, img_name)
     img_owner_id, img_media_id = save_wall_photo(basic_params, upload_img_response, vk_endpoint, vk_group_id)
     post_img(basic_params, vk_endpoint, img_owner_id, img_media_id, comic_msg, vk_group_id)
+    shutil.rmtree(dir_name, ignore_errors=False, onerror=None)
