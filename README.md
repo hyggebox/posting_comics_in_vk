@@ -27,7 +27,6 @@ pip install -r requirements.txt
 - Создайте файл .env и запишите туда переменные:
 ```
 VK_ACCESS_TOKEN=<ваш_access_token>
-VK_USER_ID=<ваш_id_пользователя>
 VK_GROUP_ID=<id_вашего_сообщества>
 ```
 
