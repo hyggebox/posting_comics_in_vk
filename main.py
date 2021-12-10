@@ -39,9 +39,9 @@ def download_comic(dir_name, img_name, num):
 
 def upload_img(basic_params, endpoint, dir_name, img_name, group_id):
     params = {
+        **basic_params,
         "group_id": group_id
     }
-    params.update(basic_params)
 
     response = requests.get(endpoint.format("photos.getWallUploadServer"), params=params)
     response.raise_for_status()
@@ -59,10 +59,10 @@ def upload_img(basic_params, endpoint, dir_name, img_name, group_id):
 
 def save_wall_photo(basic_params, upload_img_response, endpoint, group_id):
     params = {
+        **basic_params,
+        **upload_img_response,
         "group_id": group_id
     }
-    params.update(basic_params)
-    params.update(upload_img_response)
 
     response = requests.get(endpoint.format("photos.saveWallPhoto"), params=params)
     response.raise_for_status()
@@ -75,12 +75,12 @@ def save_wall_photo(basic_params, upload_img_response, endpoint, group_id):
 
 def post_img(basic_params, endpoint, owner_id, media_id, msg, group_id):
     params = {
+        **basic_params,
         "owner_id": f'-{group_id}',
         "from_group": 1,
         "message": msg,
         "attachments": f"photo{owner_id}_{media_id}"
     }
-    params.update(basic_params)
 
     response = requests.post(endpoint.format("wall.post"), data=params)
     response.raise_for_status()
