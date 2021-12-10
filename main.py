@@ -39,16 +39,18 @@ def download_comic(dir_name, img_name, num):
     return f"{comic_title}\n\n{comic_alt}"
 
 
-def upload_img(basic_params, endpoint, dir_name, img_name, group_id):
+def get_upload_url(basic_params, endpoint, group_id):
     params = {
         **basic_params,
         "group_id": group_id
     }
-
     response = requests.get(endpoint.format("photos.getWallUploadServer"), params=params)
     response.raise_for_status()
     upload_url = response.json()["response"]["upload_url"]
+    return upload_url
 
+
+def upload_img(upload_url, dir_name, img_name):
     with open(os.path.join(dir_name, img_name), 'rb') as file:
         files = {
             'photo': file,
@@ -107,6 +109,7 @@ if __name__ == "__main__":
     pathlib.Path(dir_name).mkdir(exist_ok=True)
 
     comic_msg = download_comic(dir_name, img_name, get_random_comic_num())
-    upload_img_response = upload_img(basic_params, vk_endpoint, dir_name, img_name, vk_group_id)
+    upload_url = get_upload_url(basic_params, vk_endpoint, vk_group_id)
+    upload_img_response = upload_img(upload_url, dir_name, img_name)
     img_owner_id, img_media_id = save_wall_photo(basic_params, upload_img_response, vk_endpoint, vk_group_id)
     post_img(basic_params, vk_endpoint, img_owner_id, img_media_id, comic_msg, vk_group_id)
