@@ -92,13 +92,13 @@ def post_img(basic_params, endpoint, owner_id, media_id, msg, group_id):
 if __name__ == "__main__":
     load_dotenv()
 
-    API_VERSION = "5.131"
-    VK_ENDPOINT = "https://api.vk.com/method/{}"
-
+    api_version = "5.131"
+    vk_endpoint = "https://api.vk.com/method/{}"
     vk_group_id = os.environ["VK_GROUP_ID"]
+
     basic_params = {
         "access_token": os.environ["VK_ACCESS_TOKEN"],
-        "v": API_VERSION,
+        "v": api_version,
     }
 
     dir_name = "images"
@@ -106,6 +106,6 @@ if __name__ == "__main__":
     pathlib.Path(dir_name).mkdir(exist_ok=True)
 
     comic_msg = download_comic(dir_name, img_name, get_random_comic_num())
-    upload_img_response = upload_img(basic_params, VK_ENDPOINT, dir_name, img_name, vk_group_id)
-    img_owner_id, img_media_id = save_wall_photo(basic_params, upload_img_response, VK_ENDPOINT, vk_group_id)
-    post_img(basic_params, VK_ENDPOINT, img_owner_id, img_media_id, comic_msg, vk_group_id)
+    upload_img_response = upload_img(basic_params, vk_endpoint, dir_name, img_name, vk_group_id)
+    img_owner_id, img_media_id = save_wall_photo(basic_params, upload_img_response, vk_endpoint, vk_group_id)
+    post_img(basic_params, vk_endpoint, img_owner_id, img_media_id, comic_msg, vk_group_id)
