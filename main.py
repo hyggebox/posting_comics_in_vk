@@ -37,9 +37,9 @@ def download_comic(dir_name, img_name, num):
     return f"{comic_title}\n\n{comic_alt}"
 
 
-def upload_img(basic_params, endpoint, dir_name, img_name):
+def upload_img(basic_params, endpoint, dir_name, img_name, group_id):
     params = {
-        "group_id": os.environ["VK_GROUP_ID"]
+        "group_id": group_id
     }
     params.update(basic_params)
 
@@ -57,9 +57,9 @@ def upload_img(basic_params, endpoint, dir_name, img_name):
         return response.json()
 
 
-def save_wall_photo(basic_params, upload_img_response, endpoint):
+def save_wall_photo(basic_params, upload_img_response, endpoint, group_id):
     params = {
-        "group_id": os.environ["VK_GROUP_ID"]
+        "group_id": group_id
     }
     params.update(basic_params)
     params.update(upload_img_response)
@@ -73,9 +73,9 @@ def save_wall_photo(basic_params, upload_img_response, endpoint):
     return img_owner_id, img_media_id
 
 
-def post_img(basic_params, endpoint, owner_id, media_id, msg):
+def post_img(basic_params, endpoint, owner_id, media_id, msg, group_id):
     params = {
-        "owner_id": f'-{os.environ["VK_GROUP_ID"]}',
+        "owner_id": f'-{group_id}',
         "from_group": 1,
         "message": msg,
         "attachments": f"photo{owner_id}_{media_id}"
@@ -95,6 +95,7 @@ if __name__ == "__main__":
     API_VERSION = "5.131"
     VK_ENDPOINT = "https://api.vk.com/method/{}"
 
+    vk_group_id = os.environ["VK_GROUP_ID"]
     basic_params = {
         "access_token": os.environ["VK_ACCESS_TOKEN"],
         "v": API_VERSION,
@@ -105,6 +106,6 @@ if __name__ == "__main__":
     pathlib.Path(dir_name).mkdir(exist_ok=True)
 
     comic_msg = download_comic(dir_name, img_name, get_random_comic_num())
-    upload_img_response = upload_img(basic_params, VK_ENDPOINT, dir_name, img_name)
-    img_owner_id, img_media_id = save_wall_photo(basic_params, upload_img_response, VK_ENDPOINT)
-    post_img(basic_params, VK_ENDPOINT, img_owner_id, img_media_id, comic_msg)
+    upload_img_response = upload_img(basic_params, VK_ENDPOINT, dir_name, img_name, vk_group_id)
+    img_owner_id, img_media_id = save_wall_photo(basic_params, upload_img_response, VK_ENDPOINT, vk_group_id)
+    post_img(basic_params, VK_ENDPOINT, img_owner_id, img_media_id, comic_msg, vk_group_id)
