@@ -48,13 +48,12 @@ def upload_img(basic_params, endpoint, dir_name, img_name, group_id):
     upload_url = response.json()["response"]["upload_url"]
 
     with open(os.path.join(dir_name, img_name), 'rb') as file:
-        url = upload_url
         files = {
             'photo': file,
         }
-        response = requests.post(url, files=files)
-        response.raise_for_status()
-        return response.json()
+        response = requests.post(upload_url, files=files)
+    response.raise_for_status()
+    return response.json()
 
 
 def save_wall_photo(basic_params, upload_img_response, endpoint, group_id):
