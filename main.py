@@ -39,9 +39,10 @@ def download_comic(dir_name, img_name, num):
     return f"{comic_title}\n\n{comic_alt}"
 
 
-def get_upload_url(basic_params, endpoint, group_id):
+def get_upload_url(endpoint, group_id, access_token, api_version="5.131"):
     params = {
-        **basic_params,
+        "access_token": access_token,
+        "v": api_version,
         "group_id": group_id
     }
     response = requests.get(endpoint.format("photos.getWallUploadServer"), params=params)
@@ -60,10 +61,11 @@ def upload_img(upload_url, dir_name, img_name):
     return response.json()
 
 
-def save_wall_photo(basic_params, upload_img_response, endpoint, group_id):
+def save_wall_photo(upload_img_response, endpoint, group_id, access_token, api_version="5.131"):
     params = {
-        **basic_params,
         **upload_img_response,
+        "access_token": access_token,
+        "v": api_version,
         "group_id": group_id
     }
 
@@ -76,9 +78,10 @@ def save_wall_photo(basic_params, upload_img_response, endpoint, group_id):
     return img_owner_id, img_media_id
 
 
-def post_img(basic_params, endpoint, owner_id, media_id, msg, group_id):
+def post_img(endpoint, owner_id, media_id, msg, group_id, access_token, api_version="5.131"):
     params = {
-        **basic_params,
+        "access_token": access_token,
+        "v": api_version,
         "owner_id": f'-{group_id}',
         "from_group": 1,
         "message": msg,
@@ -93,22 +96,17 @@ def post_img(basic_params, endpoint, owner_id, media_id, msg, group_id):
 if __name__ == "__main__":
     load_dotenv()
 
-    api_version = "5.131"
     vk_endpoint = "https://api.vk.com/method/{}"
     vk_group_id = os.environ["VK_GROUP_ID"]
-
-    basic_params = {
-        "access_token": os.environ["VK_ACCESS_TOKEN"],
-        "v": api_version,
-    }
+    access_token = os.environ["VK_ACCESS_TOKEN"]
 
     dir_name = "images"
     img_name = "comic.png"
     pathlib.Path(dir_name).mkdir(exist_ok=True)
 
     comic_msg = download_comic(dir_name, img_name, get_random_comic_num())
-    upload_url = get_upload_url(basic_params, vk_endpoint, vk_group_id)
+    upload_url = get_upload_url(vk_endpoint, vk_group_id, access_token)
     upload_img_response = upload_img(upload_url, dir_name, img_name)
-    img_owner_id, img_media_id = save_wall_photo(basic_params, upload_img_response, vk_endpoint, vk_group_id)
-    post_img(basic_params, vk_endpoint, img_owner_id, img_media_id, comic_msg, vk_group_id)
+    img_owner_id, img_media_id = save_wall_photo(upload_img_response, vk_endpoint, vk_group_id, access_token)
+    post_img(vk_endpoint, img_owner_id, img_media_id, comic_msg, vk_group_id, access_token)
     shutil.rmtree(dir_name, ignore_errors=False, onerror=None)
