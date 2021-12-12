@@ -2,6 +2,7 @@ import os
 import pathlib
 import shutil
 
+import bcolors
 import requests
 
 from dotenv import load_dotenv
@@ -16,6 +17,13 @@ def get_random_comic_num():
     random_comic_num = randint(1, latest_comic_num)
 
     return random_comic_num
+
+
+def check_vk_response(response):
+    if "error" in response:
+        error_msg = f'Code:{response["error"]["error_code"]} -- {response["error"]["error_msg"]}'
+        raise requests.HTTPError(error_msg)
+    return response
 
 
 def download_file(dir_name, img_name, url):
@@ -47,7 +55,9 @@ def get_upload_url(endpoint, group_id, access_token, api_version="5.131"):
     }
     response = requests.get(endpoint.format("photos.getWallUploadServer"), params=params)
     response.raise_for_status()
-    upload_url = response.json()["response"]["upload_url"]
+    upload_url_response = response.json()
+    check_vk_response(upload_url_response)
+    upload_url = upload_url_response["response"]["upload_url"]
     return upload_url
 
 
@@ -58,7 +68,10 @@ def upload_img(upload_url, dir_name, img_name):
         }
         response = requests.post(upload_url, files=files)
     response.raise_for_status()
-    return response.json()
+    upload_img_response = response.json()
+    if upload_img_response["photo"] == "[]":
+        raise requests.HTTPError("Photo not uploaded")
+    return upload_img_response
 
 
 def save_wall_photo(upload_img_response, endpoint, group_id, access_token, api_version="5.131"):
@@ -72,6 +85,7 @@ def save_wall_photo(upload_img_response, endpoint, group_id, access_token, api_v
     response = requests.get(endpoint.format("photos.saveWallPhoto"), params=params)
     response.raise_for_status()
     saved_img_response = response.json()
+    check_vk_response(saved_img_response)
     img_owner_id = saved_img_response["response"][0]["owner_id"]
     img_media_id = saved_img_response["response"][0]["id"]
 
@@ -90,6 +104,7 @@ def post_img(endpoint, owner_id, media_id, msg, group_id, access_token, api_vers
 
     response = requests.post(endpoint.format("wall.post"), data=params)
     response.raise_for_status()
+    check_vk_response(response.json())
 
 
 
@@ -104,9 +119,15 @@ if __name__ == "__main__":
     img_name = "comic.png"
     pathlib.Path(dir_name).mkdir(exist_ok=True)
 
-    comic_msg = download_comic(dir_name, img_name, get_random_comic_num())
-    upload_url = get_upload_url(vk_endpoint, vk_group_id, access_token)
-    upload_img_response = upload_img(upload_url, dir_name, img_name)
-    img_owner_id, img_media_id = save_wall_photo(upload_img_response, vk_endpoint, vk_group_id, access_token)
-    post_img(vk_endpoint, img_owner_id, img_media_id, comic_msg, vk_group_id, access_token)
-    shutil.rmtree(dir_name, ignore_errors=False, onerror=None)
+    try:
+        comic_msg = download_comic(dir_name, img_name, get_random_comic_num())
+        upload_url = get_upload_url(vk_endpoint, vk_group_id, access_token)
+        upload_img_response = upload_img(upload_url, dir_name, img_name)
+        img_owner_id, img_media_id = save_wall_photo(upload_img_response, vk_endpoint, vk_group_id, access_token)
+        post_img(vk_endpoint, img_owner_id, img_media_id, comic_msg, vk_group_id, access_token)
+    except requests.HTTPError as error:
+        print(f"{bcolors.ERR}ERROR: {error}")
+    except requests.exceptions.RequestException as error:
+        print(f"{bcolors.ERR}ERROR: {error}")
+    finally:
+        shutil.rmtree(dir_name, ignore_errors=False, onerror=None)
