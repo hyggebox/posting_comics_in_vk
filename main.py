@@ -21,7 +21,8 @@ def get_random_comic_num():
 
 def check_vk_response(response):
     if "error" in response:
-        error_msg = f'Code:{response["error"]["error_code"]} -- {response["error"]["error_msg"]}'
+        error_msg = f'Code:{response["error"]["error_code"]} --' \
+                    f'{response["error"]["error_msg"]}'
         raise requests.HTTPError(error_msg)
     return response
 
@@ -53,7 +54,8 @@ def get_upload_url(endpoint, group_id, access_token, api_version="5.131"):
         "v": api_version,
         "group_id": group_id
     }
-    response = requests.get(endpoint.format("photos.getWallUploadServer"), params=params)
+    response = requests.get(endpoint.format("photos.getWallUploadServer"),
+                            params=params)
     response.raise_for_status()
     upload_url_response = response.json()
     check_vk_response(upload_url_response)
@@ -77,7 +79,8 @@ def upload_img(upload_url, dir_name, img_name):
     return server, photo, img_hash
 
 
-def save_wall_photo(server, photo, img_hash, endpoint, group_id, access_token, api_version="5.131"):
+def save_wall_photo(server, photo, img_hash, endpoint, group_id,
+                    access_token, api_version="5.131"):
     params = {
         "server": server,
         "photo": photo,
@@ -87,7 +90,8 @@ def save_wall_photo(server, photo, img_hash, endpoint, group_id, access_token, a
         "group_id": group_id
     }
 
-    response = requests.get(endpoint.format("photos.saveWallPhoto"), params=params)
+    response = requests.get(endpoint.format("photos.saveWallPhoto"),
+                            params=params)
     response.raise_for_status()
     saved_img_response = response.json()
     check_vk_response(saved_img_response)
@@ -97,7 +101,8 @@ def save_wall_photo(server, photo, img_hash, endpoint, group_id, access_token, a
     return img_owner_id, img_media_id
 
 
-def post_img(endpoint, owner_id, media_id, msg, group_id, access_token, api_version="5.131"):
+def post_img(endpoint, owner_id, media_id, msg, group_id,
+             access_token, api_version="5.131"):
     params = {
         "access_token": access_token,
         "v": api_version,
@@ -110,7 +115,6 @@ def post_img(endpoint, owner_id, media_id, msg, group_id, access_token, api_vers
     response = requests.post(endpoint.format("wall.post"), data=params)
     response.raise_for_status()
     check_vk_response(response.json())
-
 
 
 if __name__ == "__main__":
@@ -127,9 +131,27 @@ if __name__ == "__main__":
     try:
         comic_msg = download_comic(dir_name, img_name, get_random_comic_num())
         upload_url = get_upload_url(vk_endpoint, vk_group_id, access_token)
-        upload_server, upload_photo, upload_hash = upload_img(upload_url, dir_name, img_name)
-        img_owner_id, img_media_id = save_wall_photo(upload_server, upload_photo, upload_hash, vk_endpoint, vk_group_id, access_token)
-        post_img(vk_endpoint, img_owner_id, img_media_id, comic_msg, vk_group_id, access_token)
+        upload_server, upload_photo, upload_hash = upload_img(
+            upload_url,
+            dir_name,
+            img_name
+        )
+        img_owner_id, img_media_id = save_wall_photo(
+            upload_server,
+            upload_photo,
+            upload_hash,
+            vk_endpoint,
+            vk_group_id,
+            access_token
+        )
+        post_img(
+            vk_endpoint,
+            img_owner_id,
+            img_media_id,
+            comic_msg,
+            vk_group_id,
+            access_token
+        )
     except requests.HTTPError as error:
         print(f"{bcolors.ERR}ERROR: {error}")
     except requests.exceptions.RequestException as error:
