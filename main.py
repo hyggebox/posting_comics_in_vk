@@ -69,14 +69,19 @@ def upload_img(upload_url, dir_name, img_name):
         response = requests.post(upload_url, files=files)
     response.raise_for_status()
     upload_img_response = response.json()
-    if upload_img_response["photo"] == "[]":
+    server = upload_img_response["server"]
+    photo = upload_img_response["photo"]
+    img_hash = upload_img_response["hash"]
+    if photo == "[]":
         raise requests.HTTPError("Photo not uploaded")
-    return upload_img_response
+    return server, photo, img_hash
 
 
-def save_wall_photo(upload_img_response, endpoint, group_id, access_token, api_version="5.131"):
+def save_wall_photo(server, photo, img_hash, endpoint, group_id, access_token, api_version="5.131"):
     params = {
-        **upload_img_response,
+        "server": server,
+        "photo": photo,
+        "hash": img_hash,
         "access_token": access_token,
         "v": api_version,
         "group_id": group_id
@@ -122,8 +127,8 @@ if __name__ == "__main__":
     try:
         comic_msg = download_comic(dir_name, img_name, get_random_comic_num())
         upload_url = get_upload_url(vk_endpoint, vk_group_id, access_token)
-        upload_img_response = upload_img(upload_url, dir_name, img_name)
-        img_owner_id, img_media_id = save_wall_photo(upload_img_response, vk_endpoint, vk_group_id, access_token)
+        upload_server, upload_photo, upload_hash = upload_img(upload_url, dir_name, img_name)
+        img_owner_id, img_media_id = save_wall_photo(upload_server, upload_photo, upload_hash, vk_endpoint, vk_group_id, access_token)
         post_img(vk_endpoint, img_owner_id, img_media_id, comic_msg, vk_group_id, access_token)
     except requests.HTTPError as error:
         print(f"{bcolors.ERR}ERROR: {error}")
